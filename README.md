@@ -63,18 +63,18 @@ Authentication APIs:
 - POST /api/v1.0/change-password: Change user's password.
 
 Room Management APIs:
-- GET /room: Get list rooms.
-- POST /room: Create a new room.
-- POST /room/join: Join an existing room.
-- POST /room/leave: Leave an existing room.
+- GET /api/v1.0/room: Get list rooms.
+- POST /api/v1.0/room: Create a new room.
+- POST /api/v1.0/room/join: Join an existing room.
+- POST /api/v1.0/room/leave: Leave an existing room.
 
 Whiteboard APIs:
-- POST /whiteboard/action: Broadcast whiteboard actions.
-- GET /whiteboard: Retrieve saved whiteboard state.
+- POST /api/v1.0/whiteboard/action: Broadcast whiteboard actions.
+- GET /api/v1.0/whiteboard: Retrieve saved whiteboard state.
 
 Chat APIs:
-- POST /message: Send a text message.
-- POST /file: Send a file message.
+- POST /api/v1.0/message: Send a text message.
+- POST /api/v1.0/file: Send a file message.
 
 ### 4. Data Model Design
 
