@@ -1,0 +1,8 @@
+{
+    "prettier.useEditorConfig": true,
+    "printWidth": 150,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "semi": true,
+    "arrowParens": "avoid"
+}
