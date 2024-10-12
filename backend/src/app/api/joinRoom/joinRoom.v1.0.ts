@@ -6,13 +6,11 @@ import config from '@/configs/env';
 import logger from '@/libs/logger';
 import * as roomService from '@/services/room.service';
 import * as socketService from '@/services/socket.service';
-// import * as cacheService from '@/services/cache.service';
 
 export default async function joinRoom(req: Request, res: Response, next: NextFunction) {
 	const _req = req as IRequest;
 	const LABEL = { label: _req.request_id };
 	try {
-		// const refreshToken = req.cookies.refreshToken;
 		const roomName: string = _req.params.roomName;
 		const currentUser = _req.current_user;
 		const selectedRoom = await roomService.selectOne(roomName);

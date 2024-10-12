@@ -12,8 +12,8 @@ export function init(httpServer: ReturnType<typeof createServer>) {
 			credentials: true,
 		},
 	});
-	io.on('connection', onConnection);
 	io.use(validateSocketToken);
+	io.on('connection', onConnection);
 	return io;
 };
 
