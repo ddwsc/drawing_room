@@ -28,3 +28,7 @@ export function resetPasswordToken(email: string) {
 		config.token.resetPasswordExpire
 	);
 }
+
+export function fileAccessToken() {
+	return encodeToken({}, config.token.secret, config.token.fileExpire);
+}

@@ -135,3 +135,4 @@ dist
 temp.ts
 demo.ts
 *.http
+uploads

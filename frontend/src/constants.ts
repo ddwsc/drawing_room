@@ -23,6 +23,7 @@ export const api = {
 	joinRoom: ENV.VITE_API_JOIN_ROOM || '/room/join/:roomName',
 	leaveRoom: ENV.VITE_API_LEAVE_ROOM || '/room/leave/:roomName',
 	createMessage: ENV.VITE_API_CREATE_MESSAGE || '/message',
+	uploadFile: ENV.VITE_API_UPLOAD_FILE || '/file',
 }
 
 export const socket = {

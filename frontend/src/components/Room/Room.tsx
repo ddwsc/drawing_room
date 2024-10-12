@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
+import { Socket } from "socket.io-client";
 import { useLoader } from "@/contexts/LoaderContext";
 import { useToast } from "@/contexts/ToastContext";
 import { routes } from "@/constants";
@@ -19,9 +20,10 @@ interface IMessage {
 export default function Room() {
 	const navigate = useNavigate();
 	const { roomName } = useParams();
+	const currentRoomName = roomName || "";
 	const { showLoader, hideLoader } = useLoader();
 	const { showToast } = useToast();
-	const [initial, setInitial] = React.useState(false);
+	const [initial, setInitial] = React.useState(0);
 	const [messages, setMessages] = React.useState<IMessage[]>([]);
 	const [messageText, setMessageText] = React.useState("");
 	const [onlineCount, setOnlineCount] = React.useState(0);
@@ -29,44 +31,45 @@ export default function Room() {
 	React.useEffect(() => {
 		if (initial) return;
 		joinRoom();
-		setInitial(true);
 		return () => {};
 	}, []);
 
 	React.useEffect(() => {
-		const socket = socketService.open();
+		let socket: Socket;
 
-    socket.on('RoomMembers', ({ roomName: toRoom, totalMembers }) => {
-      if (roomName === toRoom) {
-        setOnlineCount(totalMembers);
-      }
-    });
+		if (initial === 1) {
+			socket = socketService.open(currentRoomName);
 
-		socket.on('RoomMessages', ({ roomName: toRoom, username, type, content }) => {
-      if (roomName === toRoom && username && type && content) {
-				const newMessage: IMessage = {
-					user: username as string,
-					type: type as string,
-					content: content as string,
-				};
-				// const newMessages = messages.concat();
-				// console.log(newMessages);
-				// newMessages.push(newMessage);
-				// console.log(newMessages);
-        setMessages(prevItems => [...prevItems, newMessage]);
-      }
-    });
+			socket.on("RoomMembers", ({ roomName, totalMembers }) => {
+				if (currentRoomName === roomName) {
+					setOnlineCount(totalMembers);
+				}
+			});
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [initial]);
+			socket.on("RoomMessages", ({ roomName, username, type, content }) => {
+				if (currentRoomName === roomName && username && type && content) {
+					const newMessage: IMessage = {
+						user: username as string,
+						type: type as string,
+						content: content as string,
+					};
+					setMessages((prevItems) => [...prevItems, newMessage]);
+				}
+			});
+		}
+
+		return () => {
+			if (socket) socket.disconnect();
+		};
+	}, [initial]);
 
 	async function joinRoom() {
 		showLoader();
 		try {
-			const res = await roomService.join(roomName || "");
-			if (res && res.data && res.data.room) setOnlineCount(res.data.room.members);
+			const res = await roomService.join(currentRoomName);
+			if (res && res.data && res.data.room)
+				setOnlineCount(res.data.room.members);
+			setInitial(1);
 			hideLoader();
 		} catch (error) {
 			hideLoader();
@@ -84,13 +87,13 @@ export default function Room() {
 
 	function handleTextChange(e: React.ChangeEvent<HTMLInputElement>) {
 		setMessageText(e.target.value);
-	};
+	}
 
 	async function handleTextOnKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-		if (e.key === 'Enter') {
+		if (e.key === "Enter") {
 			try {
-				await messageService.create(roomName || '', messageText);
-				setMessageText('');
+				await messageService.create(roomName || "", messageText);
+				setMessageText("");
 			} catch (error) {
 				let errorMessage = "Error";
 				if (error instanceof AxiosError) {
@@ -101,6 +104,29 @@ export default function Room() {
 			}
 		}
 	}
+
+	const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file && file.size && file.type) {
+			if (!file.type.includes("pdf") && !file.type.includes("image/")) {
+				showToast('Unsupported file type');
+				return;
+			}
+			try {
+				const formData = new FormData();
+				formData.append('roomName', currentRoomName);
+				formData.append('file', file);
+				await messageService.upload(formData);
+			} catch (error) {
+				let errorMessage = "Error";
+				if (error instanceof AxiosError) {
+					const errData: any = error.response?.data;
+					errorMessage = errData?.message || error.message;
+				}
+				showToast(errorMessage);
+			}
+		}
+	};
 
 	return (
 		<Wrapper>
@@ -120,27 +146,45 @@ export default function Room() {
 						{messages.map((message, index) => (
 							<div key={`message${index}`}>
 								<span className="text-white text-sm font-bold">
-									{message.user}{message.user && ':'}&nbsp;&nbsp;
+									{message.user}
+									{message.user && ":"}&nbsp;&nbsp;
 								</span>
-								<span className="text-gray-400 text-sm">{message.content}</span>
+								{message.type === 'file' ? (
+									<a href={message.content} target="_blank" className="text-primary-500 text-sm underline">send a file</a>
+								) : (
+									<span className="text-gray-400 text-sm">{message.content}</span>
+								)}
 							</div>
 						))}
 					</article>
-					<article className="w-full flex items-center justify-between relative">
-						<div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-							<UploadIcon />
-						</div>
-						<input
-							type="text"
-							className="border text-sm rounded-lg block w-full px-10 p-2 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-primary-500 focus:border-primary-500"
-							placeholder={constant.messagePlaceholder}
-							onChange={handleTextChange}
-							value={messageText}
-							onKeyDown={handleTextOnKeyDown}
-						/>
-						<div className="absolute inset-y-0 right-2 flex items-center pl-3 pointer-events-none">
-							<SendIcon />
-						</div>
+					<article className="w-full flex items-center justify-between space-x-2">
+						<article className="flex items-center">
+							<label
+								htmlFor="file-upload"
+								className="p-[6px] rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:ring-primary-500 focus:border-primary-500 cursor-pointer"
+							>
+								<UploadIcon />
+							</label>
+							<input
+								id="file-upload"
+								type="file"
+								hidden
+								accept="image/*,.pdf"
+								onChange={handleFileChange}
+							/>
+						</article>
+						<article className="relative flex-1">
+							<div className="absolute inset-y-0 right-2 flex items-center pl-3 pointer-events-none">
+								<SendIcon />
+							</div>
+							<input
+								type="text"
+								className="border text-sm rounded-lg block w-full pr-10 p-2 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-primary-500 focus:border-primary-500"
+								onChange={handleTextChange}
+								value={messageText}
+								onKeyDown={handleTextOnKeyDown}
+							/>
+						</article>
 					</article>
 				</div>
 			</section>
@@ -151,7 +195,7 @@ export default function Room() {
 function UploadIcon() {
 	return (
 		<svg
-			className="w-6 h-6 text-gray-800 dark:text-white"
+			className="w-6 h-6 text-white"
 			aria-hidden="true"
 			xmlns="http://www.w3.org/2000/svg"
 			width="24"
@@ -173,7 +217,7 @@ function UploadIcon() {
 function SendIcon() {
 	return (
 		<svg
-			className="w-5 h-5 text-gray-800 dark:text-white"
+			className="w-5 h-5 text-white"
 			aria-hidden="true"
 			xmlns="http://www.w3.org/2000/svg"
 			width="24"

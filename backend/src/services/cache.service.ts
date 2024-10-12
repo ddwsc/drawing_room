@@ -14,3 +14,7 @@ export function remove(key: string) {
 export function insertUserSignIn(key: string, data: any) {
 	return cacheClient.insert(key, data, config.cache.userSignInExpire);
 }
+
+export function insertFileAccess(key: string, data: any) {
+	return cacheClient.insert(key, data, config.cache.fileExpire);
+}

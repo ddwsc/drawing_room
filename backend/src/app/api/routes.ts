@@ -24,7 +24,10 @@ import joinRoom from './joinRoom/joinRoom.handlers';
 import { validateJoinRoom } from './joinRoom/joinRoom.middlewares';
 import createMessage from './createMessage/createMessage.handlers';
 import { validateCreateMessage } from './createMessage/createMessage.middlewares';
-
+import createFileMessage from './createFileMessage/createFileMessage.handlers';
+import { validateCreateFileMessage, validateSingleFile } from './createFileMessage/createFileMessage.middlewares';
+import viewFile from './viewFile/viewFile.handlers';
+import { validateViewFile } from './viewFile/viewFile.middlewares'
 
 const tokenValidators = [validateAccessToken, validateRefreshToken];
 
@@ -57,6 +60,10 @@ router.post('/room/join/:roomName', ver('1.0'), ...tokenValidators, validateJoin
 router.post('/room/leave/:roomName', ver('1.0'), ...tokenValidators, validateJoinRoom, joinRoom.v1_0);
 
 router.post('/message', ver('1.0'), ...tokenValidators, validateCreateMessage, createMessage.v1_0);
+
+router.post('/file', ver('1.0'), ...tokenValidators, validateSingleFile, validateCreateFileMessage, createFileMessage.v1_0);
+
+router.get('/file/:title', ver('1.0'), validateViewFile, viewFile.v1_0)
 
 const apiRouter = Router();
 apiRouter.use('/:version', validateVersionTag, router);

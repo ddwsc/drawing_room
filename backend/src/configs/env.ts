@@ -22,11 +22,15 @@ const schema = Joi.object()
 		SOCKET_EVENT_ROOM_MEMBERS: Joi.string().default('RoomMembers'),
 		SOCKET_EVENT_ROOM_MESSAGES: Joi.string().default('RoomMessages'),
 
+		UPLOAD_DIR: Joi.string().default('uploads'),
+		UPLOAD_MAX_SIZE: Joi.number().default(5),
+
 		TOKEN_SECRET: Joi.string().required(),
 		TOKEN_ACCESS_MINUTE: Joi.number().default(6),
 		TOKEN_REFRESH_HOUR: Joi.number().default(24),
 		TOKEN_VERIFY_EMAIL_HOUR: Joi.number().default(24),
 		TOKEN_RESET_PASSWORD_HOUR: Joi.number().default(2),
+		TOKEN_FILE_HOUR: Joi.number().default(10),
 
 		DB_USER: Joi.string().default('root'),
 		DB_PASS: Joi.string().default(''),
@@ -45,6 +49,9 @@ const schema = Joi.object()
 
 		NODEMAILER_GMAIL_USER: Joi.string().required(),
 		NODEMAILER_GMAIL_PASS: Joi.string().required(),
+
+		GCP_KEY_FILE: Joi.string().default(''),
+		GCP_BUCKET_NAME: Joi.string().default(''),
 	})
 	.unknown();
 
@@ -76,16 +83,22 @@ const config: IEnvConfig = {
 			roomMessages: value.SOCKET_EVENT_ROOM_MESSAGES,
 		}
 	},
+	upload: {
+		dir: value.UPLOAD_DIR,
+		maxSize: value.UPLOAD_MAX_SIZE,
+	},
 	token: {
 		secret: value.TOKEN_SECRET,
 		accessExpire: `${value.TOKEN_ACCESS_MINUTE}m`,
 		refreshExpire: `${value.TOKEN_REFRESH_HOUR}h`,
 		verifyEmailExpire: `${value.TOKEN_VERIFY_EMAIL_HOUR}h`,
 		resetPasswordExpire: `${value.TOKEN_RESET_PASSWORD_HOUR}h`,
+		fileExpire: `${value.TOKEN_FILE_HOUR}h`,
 	},
 	cache: {
 		userAccessExpire: value.TOKEN_ACCESS_MINUTE * 60 * 1000,
 		userSignInExpire: value.TOKEN_REFRESH_HOUR * 60 * 60 * 1000,
+		fileExpire: value.TOKEN_FILE_HOUR * 60 * 60 * 1000,
 	},
 	db: {
 		username: value.DB_USER,
@@ -107,6 +120,10 @@ const config: IEnvConfig = {
 	nodemailer: {
 		user: value.NODEMAILER_GMAIL_USER,
 		pass: value.NODEMAILER_GMAIL_PASS,
+	},
+	gcp: {
+		keyFile: value.GCP_KEY_FILE,
+		bucketName: value.GCP_BUCKET_NAME,
 	},
 };
 

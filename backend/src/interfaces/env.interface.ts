@@ -21,16 +21,22 @@ export interface IEnvConfig {
 			roomMessages: string;
 		}
 	};
+	upload: {
+		dir: string;
+		maxSize: number;
+	};
 	token: {
 		secret: string;
 		accessExpire: string;
 		refreshExpire: string;
 		verifyEmailExpire: string;
 		resetPasswordExpire: string;
+		fileExpire: string;
 	};
 	cache: {
 		userAccessExpire: number;
 		userSignInExpire: number;
+		fileExpire: number;
 	};
 	db: {
 		username: string;
@@ -52,5 +58,9 @@ export interface IEnvConfig {
 	nodemailer: {
 		user: string;
 		pass: string;
+	};
+	gcp: {
+		keyFile: string;
+		bucketName: string;
 	};
 }
