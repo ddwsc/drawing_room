@@ -101,7 +101,7 @@ Cache: Redis for caching data.
 
 Message Queue: Kafka to handle event streaming and message queuing. (Not implemented yet)
 
-File Storage: GCP Buckets for storing files.
+File Storage: GCP Storage for storing files.
 
 ### Detailed Design
 
@@ -112,7 +112,7 @@ WebSockets for Real-Time Collaboration:
 Backend Design:
 - Node.js/Express will handle REST API requests for user management, room creation, and session storage.
 - Socket.io will handle real-time collaboration on the whiteboard and chat.
-- Kafka integration: Kafka topics will be created per room for managing events. Each room has its topic for handling whiteboard updates and chat.
+- Kafka integration: Kafka topic will be created for email sending events.
 - Redis integration: User's information will be saved for each login session.
 
 MySQL Design:
